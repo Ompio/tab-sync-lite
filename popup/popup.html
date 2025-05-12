@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tab Syncer Lite</title>
+    <style>
+        body { width: 500px; padding: 10px; font-family: sans-serif; } /* Zwiększamy szerokość */
+        button { width: 100%; padding: 10px; cursor: pointer; margin-bottom: 15px; } /* Dodajemy margines pod przyciskiem */
+        #status { margin-top: 10px; font-size: 0.9em; color: gray; min-height: 1.2em; } /* Minimalna wysokość, żeby nie skakało */
+        #savedTabsSection { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        #savedTabsSection h2 { font-size: 1.1em; margin-top: 0; margin-bottom: 10px; }
+        #savedTabsList { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; } /* Lista bez kropek, scroll jeśli za dużo */
+        #savedTabsList li { margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px dashed #eee; font-size: 0.9em; }
+        #savedTabsList li:last-child { border-bottom: none; padding-bottom: 0; }
+        #savedTabsList li a { text-decoration: none; color: #0066cc; display: block; }
+        #savedTabsList li a:hover { text-decoration: underline; }
+        #savedTabsList li span { display: block; color: #555; font-size: 0.8em; } /* URL */
+        .no-tabs-message { font-style: italic; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>Tab Syncer Lite</h1>
+    <button id="saveTabsButton">Zapisz obecne karty</button>
+    <p id="status"></p>
+
+    <div id="savedTabsSection">
+        <h2>Zapisane karty</h2>
+        <ul id="savedTabsList">
+            <li class="no-tabs-message">Ładowanie...</li>
+        </ul>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
