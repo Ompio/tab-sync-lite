@@ -50,24 +50,24 @@ restoreButton.addEventListener('click', async () => {
     statusElement.style.color = 'gray';
 
     try {
-        // 1. Pobierz zapisane karty
         const data = await browser.storage.sync.get(storageKey);
-        const savedTabs = data[storageKey];
+        const savedTabs = data[storageKey] || [];
 
-        if (!savedTabs || savedTabs.length === 0) {
+        if (savedTabs.length === 0) {
             statusElement.textContent = 'Brak zapisanych kart.';
             statusElement.style.color = 'orange';
             return;
         }
 
-        // 2. Pobierz aktualnie otwarte karty
+        const savedUrls = savedTabs.map(tab => tab.url).filter(Boolean);
         const currentTabs = await browser.tabs.query({});
+        const currentUrls = currentTabs.map(tab => tab.url).filter(Boolean);
 
-        // 3. Filtruj i zamknij tylko te http/https karty, które nie są np. chrome:// lub plikami
+        // Zamknij zakładki, które są obecnie otwarte, ale nie znajdują się w zapisanych
         const tabsToClose = currentTabs.filter(tab =>
             tab.url &&
-            tab.url.startsWith('http') &&
-            !tab.url.endsWith('.pdf') // nie chcemy zamykać pdfów (ani ich synchronizować)
+            tab.url.startsWith('http') && // nadal nie zamykamy chrome:// itd.
+            !savedUrls.includes(tab.url) // tylko jeśli nie ma jej w zapisanych
         );
 
         for (const tab of tabsToClose) {
@@ -78,23 +78,21 @@ restoreButton.addEventListener('click', async () => {
             }
         }
 
-        // 4. Otwórz zapisane karty
-        let openedCount = 0;
-        for (const tab of savedTabs) {
-            if (tab.url &&
-                tab.url.startsWith('http') &&
-                !tab.url.endsWith('.pdf')
-            ) {
-                try {
-                    await browser.tabs.create({ url: tab.url });
-                    openedCount++;
-                } catch (e) {
-                    console.warn(`Błąd przy otwieraniu ${tab.url}:`, e);
-                }
+        // Otwórz zakładki, które są zapisane, ale nie są aktualnie otwarte
+        const tabsToOpen = savedTabs.filter(tab =>
+            tab.url &&
+            !currentUrls.includes(tab.url)
+        );
+
+        for (const tab of tabsToOpen) {
+            try {
+                await browser.tabs.create({ url: tab.url });
+            } catch (e) {
+                console.warn(`Nie udało się otworzyć ${tab.url}:`, e);
             }
         }
 
-        statusElement.textContent = `Odtworzono ${openedCount} kart.`;
+        statusElement.textContent = `Zamknięto ${tabsToClose.length}, otwarto ${tabsToOpen.length} kart.`;
         statusElement.style.color = 'green';
 
     } catch (error) {
@@ -103,6 +101,7 @@ restoreButton.addEventListener('click', async () => {
         console.error(error);
     }
 });
+
 
 
 async function displaySavedTabs() {
