@@ -1,31 +1,78 @@
-<!DOCTYPE html>
-<html>
 <head>
     <meta charset="utf-8">
     <title>Tab Syncer Lite</title>
     <style>
-        body { width: 500px; padding: 10px; font-family: sans-serif; } /* Zwiększamy szerokość */
-        button { width: 100%; padding: 10px; cursor: pointer; margin-bottom: 15px; } /* Dodajemy margines pod przyciskiem */
-        #status { margin-top: 10px; font-size: 0.9em; color: gray; min-height: 1.2em; } /* Minimalna wysokość, żeby nie skakało */
+        body { width: 300px; padding: 10px; font-family: sans-serif; } /* Sugeruję wrócić do mniejszej szerokości popupu, np. 300px, 500px może być za szerokie na typowy popup */
+        h1 { font-size: 1.3em; margin-bottom: 15px; } /* Styl dla nagłówka */
+
+        /* Styl dla przycisków */
+        button {
+            width: 100%; /* Pełna szerokość */
+            padding: 10px 15px; /* Większy padding wewnętrzny (góra/dół lewo/prawo) */
+            margin-bottom: 10px; /* Odstęp między przyciskami */
+            border: 1px solid #007bff; /* Cienka granica w kolorze akcentu */
+            background-color: #007bff; /* Kolor tła akcentu */
+            color: white; /* Biały tekst */
+            font-size: 1em;
+            cursor: pointer; /* Zmienia kursor na łapkę */
+            border-radius: 4px; /* Lekko zaokrąglone rogi */
+            transition: background-color 0.2s ease, border-color 0.2s ease; /* Płynne przejście przy najechaniu */
+            box-sizing: border-box; /* Padding wewnątrz szerokości */
+        }
+
+        /* Efekt przy najechaniu myszką */
+        button:hover {
+            background-color: #0056b3; /* Ciemniejszy kolor tła */
+            border-color: #004085; /* Ciemniejszy kolor granicy */
+        }
+
+        /* Możesz dodać osobny styl dla drugiego przycisku, jeśli ma wyglądać inaczej */
+        /* Np. przycisk "Pobierz karty" jako przycisk "secondary" bez wypełnienia */
+        #downloadTabsButton {
+            background-color: transparent; /* Bez tła */
+            color: #007bff; /* Kolor tekstu jak kolor granicy */
+            border-color: #007bff; /* Kolor granicy */
+        }
+
+        #downloadTabsButton:hover {
+             background-color: #e9e9e9; /* Lekko szare tło przy najechaniu */
+             color: #0056b3;
+             border-color: #0056b3;
+        }
+
+
+        #status {
+            margin-top: 15px; /* Większy margines na górze, żeby oddzielić od przycisków */
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: gray;
+            min-height: 1.2em;
+        }
+
+        /* ... reszta Twoich stylów dla listy kart (#savedTabsSection, #savedTabsList, itp.) ... */
         #savedTabsSection { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
         #savedTabsSection h2 { font-size: 1.1em; margin-top: 0; margin-bottom: 10px; }
-        #savedTabsList { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; } /* Lista bez kropek, scroll jeśli za dużo */
+        #savedTabsList { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
         #savedTabsList li { margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px dashed #eee; font-size: 0.9em; }
         #savedTabsList li:last-child { border-bottom: none; padding-bottom: 0; }
-        #savedTabsList li a { text-decoration: none; color: #0066cc; display: block; }
-        #savedTabsList li a:hover { text-decoration: underline; }
-        #savedTabsList li span { display: block; color: #555; font-size: 0.8em; } /* URL */
+        /* Style dla elementów w li (np. span na URL, span na czas) */
+        #savedTabsList li span { display: block; color: #555; font-size: 0.8em; word-break: break-all; }
+         /* Możesz potrzebować więcej stylów dla poszczególnych spanów w li, np. .tab-entry span.url-text, .tab-entry span.details-text */
+
         .no-tabs-message { font-style: italic; color: #888; }
+
     </style>
 </head>
 <body>
     <h1>Tab Syncer Lite</h1>
+
     <button id="saveTabsButton">Zapisz obecne karty</button>
+    <button id="downloadTabsButton">Pobierz karty</button> 
     <p id="status"></p>
+    <p id="memoryUsage">im memory</p>
 
     <div id="savedTabsSection">
-        <h2>Zapisane karty</h2>
-        <ul id="savedTabsList">
+        <h2>Zapisane karty / Log</h2> <ul id="savedTabsList">
             <li class="no-tabs-message">Ładowanie...</li>
         </ul>
     </div>
