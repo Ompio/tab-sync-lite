@@ -46,34 +46,64 @@ saveButton.addEventListener('click', async () => {
 const restoreButton = document.getElementById('restoreTabsButton');
 
 restoreButton.addEventListener('click', async () => {
-    statusElement.textContent = 'Otwieranie zapisanych kart...';
+    statusElement.textContent = 'Odtwarzanie stanu kart...';
     statusElement.style.color = 'gray';
 
     try {
+        // 1. Pobierz zapisane karty
         const data = await browser.storage.sync.get(storageKey);
         const savedTabs = data[storageKey];
 
         if (!savedTabs || savedTabs.length === 0) {
-            statusElement.textContent = 'Brak zapisanych kart do otwarcia.';
+            statusElement.textContent = 'Brak zapisanych kart.';
             statusElement.style.color = 'orange';
             return;
         }
 
-        for (const tab of savedTabs) {
-            if (tab.url && tab.url.startsWith('http')) {
-                await browser.tabs.create({ url: tab.url });
+        // 2. Pobierz aktualnie otwarte karty
+        const currentTabs = await browser.tabs.query({});
+
+        // 3. Filtruj i zamknij tylko te http/https karty, które nie są np. chrome:// lub plikami
+        const tabsToClose = currentTabs.filter(tab =>
+            tab.url &&
+            tab.url.startsWith('http') &&
+            !tab.url.endsWith('.pdf') // nie chcemy zamykać pdfów (ani ich synchronizować)
+        );
+
+        for (const tab of tabsToClose) {
+            try {
+                await browser.tabs.remove(tab.id);
+            } catch (e) {
+                console.warn(`Nie udało się zamknąć karty: ${tab.url}`, e);
             }
         }
 
-        statusElement.textContent = `Otworzono ${savedTabs.length} kart.`;
+        // 4. Otwórz zapisane karty
+        let openedCount = 0;
+        for (const tab of savedTabs) {
+            if (tab.url &&
+                tab.url.startsWith('http') &&
+                !tab.url.endsWith('.pdf')
+            ) {
+                try {
+                    await browser.tabs.create({ url: tab.url });
+                    openedCount++;
+                } catch (e) {
+                    console.warn(`Błąd przy otwieraniu ${tab.url}:`, e);
+                }
+            }
+        }
+
+        statusElement.textContent = `Odtworzono ${openedCount} kart.`;
         statusElement.style.color = 'green';
 
     } catch (error) {
-        statusElement.textContent = 'Błąd otwierania: ' + error.message;
+        statusElement.textContent = 'Błąd podczas odtwarzania: ' + error.message;
         statusElement.style.color = 'red';
         console.error(error);
     }
 });
+
 
 async function displaySavedTabs() {
     savedTabsListElement.innerHTML = '<li>Ładowanie danych...</li>';
