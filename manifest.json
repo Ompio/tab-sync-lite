@@ -1,14 +1,24 @@
 {
     "manifest_version": 3,
     "name": "Tab Sync Lite",
-    "version": "1.1",
+    "version": "1.2",
     "description": "Simple extension to sync tabs between computers using firefox account",
     "permissions": [
       "tabs",
       "storage"
     ],
+    "icons": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
     "action": {
-      "default_popup": "popup/popup.html"
+      "default_popup": "popup/popup.html",
+      "default_icon": {
+        "16": "icons/icon16.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+      }
     },
     "browser_specific_settings": {
       "gecko": {

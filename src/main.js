@@ -1,13 +1,14 @@
 import { saveTabsToStorage, getSavedTabs, getAllSyncData } from './storage.js';
-import { getAllOpenTabs, openTabs, closeTabsExcept } from './tabs.js';
+import { getAllOpenTabs, syncTabs} from './tabs.js';
 import { calculateStorageUsage } from './utils.js';
 import { updateStatus, renderMemoryUsage, renderTabList } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const saveButton = document.getElementById('save');
-    const syncButton = document.getElementById('sync');
-    const memoryContainer = document.getElementById('memory');
-    const tabListContainer = document.getElementById('log');
+    const saveButton = document.getElementById('saveTabsButton');
+    const syncButton = document.getElementById('syncTabsButton');
+    const downloadButton = document.getElementById('downloadTabsButton');
+    const memoryContainer = document.getElementById('memoryUsage');
+    const tabListContainer = document.getElementById('savedTabsList');
 
     if (saveButton) {
         saveButton.addEventListener('click', async () => {
@@ -15,11 +16,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const openTabs = await getAllOpenTabs();
                 await saveTabsToStorage(openTabs);
-                updateStatus('Karty zapisane pomyślnie.', 'green');
                 const allData = await getAllSyncData();
+                renderTabList(tabListContainer, allData.syncedTabs || []);
+                updateStatus('Karty zapisane pomyślnie.', 'green');
                 const usage = calculateStorageUsage(allData);
                 renderMemoryUsage(memoryContainer, usage);
-                renderTabList(tabListContainer, allData.syncedTabs || []);
             } catch (e) {
                 updateStatus('Błąd zapisu kart.', 'red');
                 console.error(e);
@@ -32,15 +33,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateStatus('Synchronizuję karty...');
             try {
                 const savedTabs = await getSavedTabs();
-                const savedUrls = savedTabs.map(tab => tab.url);
-                const currentlyOpenTabs = await getAllOpenTabs();
-                const openUrls = currentlyOpenTabs.map(tab => tab.url);
-    
-                const urlsToOpen = savedUrls.filter(url => !openUrls.includes(url));
-    
-                await closeTabsExcept(savedUrls);
-                await openTabs(urlsToOpen);
-    
+                renderTabList(tabListContainer, savedTabs || []);
+                await syncTabs(savedTabs);
                 updateStatus('Synchronizacja zakończona.', 'green');
             } catch (e) {
                 updateStatus('Błąd synchronizacji.', 'red');
@@ -48,7 +42,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    
+
+    if (downloadButton) {
+        downloadButton.addEventListener('click', async () => {
+            updateStatus('Pobieram karty...');
+            try {
+                const savedTabs = await getSavedTabs();
+                renderTabList(tabListContainer, savedTabs || []);
+                updateStatus('Pobieranie zakończone.', 'green');
+            } catch (e) {
+                updateStatus('Błąd pobierania.', 'red');
+                console.error(e);
+            }
+        });
+    }
 
     try {
         const allData = await getAllSyncData();

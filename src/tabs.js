@@ -18,8 +18,8 @@ export async function syncTabs(savedTabs){
 
     const tabsToClose = currentTabs.filter(tab =>
         tab.url &&
-        tab.url.startsWith('http') && // nadal nie zamykamy chrome:// itd.
-        !savedUrls.includes(tab.url) // tylko jeśli nie ma jej w zapisanych
+        tab.url.startsWith('http') &&
+        !savedUrls.includes(tab.url)
     );
 
     for (const tab of tabsToClose) {

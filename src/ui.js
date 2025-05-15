@@ -17,13 +17,12 @@ export function renderTabList(container, tabs) {
     container.innerHTML = '';
     if (tabs.length === 0) {
         const noData = document.createElement('li');
-        noData.textContent = 'Brak danych logu do wyświetlenia.';
+        noData.textContent = 'Zapisanych krt do wyświetlenia.';
         noData.style.color = '#888';
         container.appendChild(noData);
         return;
     }
-
-    for (const entry of tabs) {
+    tabs.forEach(entry => {
         const li = document.createElement('li');
         li.style.marginBottom = '8px';
         li.style.paddingBottom = '5px';
@@ -42,5 +41,5 @@ export function renderTabList(container, tabs) {
         li.appendChild(url);
         li.appendChild(meta);
         container.appendChild(li);
-    }
+    });
 }
