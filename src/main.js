@@ -68,3 +68,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error(e);
     }
 });
+
+
+const autoSyncToggle = document.getElementById('autoSyncToggle');
+  const status = document.getElementById('status');
+  const body = document.body;
+
+  autoSyncToggle.addEventListener('change', function () {
+    if (this.checked) {
+      status.textContent = "Automatyczna synchronizacja włączona";
+      body.classList.add('sync-active');
+    } else {
+      status.textContent = "Automatyczna synchronizacja wyłączona";
+      body.classList.remove('sync-active');
+    }
+  });
+
+  // Dodaj przycisk do ukrywania/pokazywania ręcznych przycisków
+  const toggleButtonsBtn = document.createElement('button');
+  toggleButtonsBtn.textContent = "Ukryj przyciski ręcznej synchronizacji";
+  toggleButtonsBtn.style.marginBottom = "12px";
+  toggleButtonsBtn.style.backgroundColor = "#6c757d";
+  toggleButtonsBtn.style.color = "white";
+  toggleButtonsBtn.style.border = "none";
+  toggleButtonsBtn.style.borderRadius = "var(--radius)";
+  toggleButtonsBtn.style.padding = "10px";
+  toggleButtonsBtn.style.cursor = "pointer";
+
+  const buttonGroup = document.querySelector('.button-group');
+  buttonGroup.parentNode.insertBefore(toggleButtonsBtn, buttonGroup);
+
+  let buttonsVisible = true;
+
+  toggleButtonsBtn.addEventListener('click', () => {
+    buttonsVisible = !buttonsVisible;
+    buttonGroup.style.display = buttonsVisible ? 'grid' : 'none';
+    toggleButtonsBtn.textContent = buttonsVisible
+      ? "Ukryj przyciski ręcznej synchronizacji"
+      : "Pokaż przyciski ręcznej synchronizacji";
+  });
