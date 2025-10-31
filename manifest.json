@@ -26,7 +26,14 @@
     "browser_specific_settings": {
       "gecko": {
         "id": "tab-syncer-lite@example.com",
-        "strict_min_version": "58.0"
+        "strict_min_version": "109.0",
+        "data_collection_permissions": {
+          "collectsTelemetry": false,
+          "collectsAccountInfo": false,
+          "collectsSearchInfo": false,
+          "collectsCookies": false,
+          "collectsBrowsingHistory": false
+        }
       }
     }
   }
