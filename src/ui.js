@@ -9,12 +9,14 @@ export function updateStatus(message, color = 'gray') {
 }
 
 export function renderMemoryUsage(container, usage) {
-    container.innerHTML = `Sync memory usage: <strong>${usage.percentage}%</strong> (${usage.bytes} bytes of ${usage.maxStorage} bytes).`;
+    // Use textContent for plain text, and only use innerHTML for trusted, static HTML
+    container.textContent = `Sync memory usage: ${usage.percentage}% (${usage.bytes} bytes of ${usage.maxStorage} bytes).`;
     container.style.color = usage.percentage > 90 ? 'red' : usage.percentage > 70 ? 'orange' : 'gray';
 }
 
 export function renderTabList(container, tabs) {
-    container.innerHTML = '';
+    // Clear the container safely
+    while (container.firstChild) container.removeChild(container.firstChild);
     if (tabs.length === 0) {
         const noData = document.createElement('li');
         noData.textContent = 'No saved tabs to display.';
