@@ -9,7 +9,7 @@ export function updateStatus(message, color = 'gray') {
 }
 
 export function renderMemoryUsage(container, usage) {
-    container.innerHTML = `Zużycie pamięci sync: <strong>${usage.percentage}%</strong> (${usage.bytes} bajtów z ${usage.maxStorage} bajtów).`;
+    container.innerHTML = `Sync memory usage: <strong>${usage.percentage}%</strong> (${usage.bytes} bytes of ${usage.maxStorage} bytes).`;
     container.style.color = usage.percentage > 90 ? 'red' : usage.percentage > 70 ? 'orange' : 'gray';
 }
 
@@ -17,7 +17,7 @@ export function renderTabList(container, tabs) {
     container.innerHTML = '';
     if (tabs.length === 0) {
         const noData = document.createElement('li');
-        noData.textContent = 'Zapisanych krt do wyświetlenia.';
+        noData.textContent = 'No saved tabs to display.';
         noData.style.color = '#888';
         container.appendChild(noData);
         return;
@@ -34,7 +34,7 @@ export function renderTabList(container, tabs) {
         url.style.wordBreak = 'break-all';
 
         const meta = document.createElement('span');
-        meta.textContent = `Akcja: ${entry.action}, Czas: ${formatTimestamp(entry.timestamp)}`;
+        meta.textContent = `Action: ${entry.action}, Time: ${formatTimestamp(entry.timestamp)}`;
         meta.style.display = 'block';
         meta.style.color = '#555';
 

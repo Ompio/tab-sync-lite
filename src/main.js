@@ -12,17 +12,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (saveButton) {
         saveButton.addEventListener('click', async () => {
-            updateStatus('Zapisuję karty...');
+            updateStatus('Saving tabs...');
             try {
                 const openTabs = await getAllOpenTabs();
                 await saveTabsToStorage(openTabs);
                 const allData = await getAllSyncData();
                 renderTabList(tabListContainer, allData.syncedTabs || []);
-                updateStatus('Karty zapisane pomyślnie.', 'green');
+                updateStatus('Tabs saved successfully.', 'green');
                 const usage = calculateStorageUsage(allData);
                 renderMemoryUsage(memoryContainer, usage);
             } catch (e) {
-                updateStatus('Błąd zapisu kart.', 'red');
+                updateStatus('Error saving tabs.', 'red');
                 console.error(e);
             }
         });
@@ -30,14 +30,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (syncButton) {
         syncButton.addEventListener('click', async () => {
-            updateStatus('Synchronizuję karty...');
+            updateStatus('Syncing tabs...');
             try {
                 const savedTabs = await getSavedTabs();
                 renderTabList(tabListContainer, savedTabs || []);
                 await syncTabs(savedTabs);
-                updateStatus('Synchronizacja zakończona.', 'green');
+                updateStatus('Sync complete.', 'green');
             } catch (e) {
-                updateStatus('Błąd synchronizacji.', 'red');
+                updateStatus('Sync error.', 'red');
                 console.error(e);
             }
         });
@@ -45,13 +45,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (downloadButton) {
         downloadButton.addEventListener('click', async () => {
-            updateStatus('Pobieram karty...');
+            updateStatus('Downloading tabs...');
             try {
                 const savedTabs = await getSavedTabs();
                 renderTabList(tabListContainer, savedTabs || []);
-                updateStatus('Pobieranie zakończone.', 'green');
+                updateStatus('Download complete.', 'green');
             } catch (e) {
-                updateStatus('Błąd pobierania.', 'red');
+                updateStatus('Download error.', 'red');
                 console.error(e);
             }
         });
@@ -62,48 +62,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         const usage = calculateStorageUsage(allData);
         renderMemoryUsage(memoryContainer, usage);
         renderTabList(tabListContainer, allData.syncedTabs || []);
-        updateStatus('Dane załadowane.', 'gray');
+        updateStatus('Data loaded.', 'gray');
     } catch (e) {
-        updateStatus('Błąd ładowania danych.', 'red');
+        updateStatus('Error loading data.', 'red');
         console.error(e);
     }
 });
 
+let autoSyncInterval = null;
+
+function startAutoSync() {
+  if (autoSyncInterval) return;
+  autoSyncInterval = setInterval(async () => {
+    try {
+      updateStatus('Auto syncing tabs...');
+      const savedTabs = await getSavedTabs();
+      renderTabList(document.getElementById('savedTabsList'), savedTabs || []);
+      await syncTabs(savedTabs);
+      updateStatus('Auto sync complete.', 'green');
+    } catch (e) {
+      updateStatus('Auto sync error.', 'red');
+      console.error(e);
+    }
+  }, 30000); // 30 seconds
+}
+
+function stopAutoSync() {
+  if (autoSyncInterval) {
+    clearInterval(autoSyncInterval);
+    autoSyncInterval = null;
+  }
+}
 
 const autoSyncToggle = document.getElementById('autoSyncToggle');
-  const status = document.getElementById('status');
-  const body = document.body;
+const status = document.getElementById('status');
+const body = document.body;
 
-  autoSyncToggle.addEventListener('change', function () {
-    if (this.checked) {
-      status.textContent = "Automatyczna synchronizacja włączona";
-      body.classList.add('sync-active');
-    } else {
-      status.textContent = "Automatyczna synchronizacja wyłączona";
-      body.classList.remove('sync-active');
-    }
-  });
+autoSyncToggle.addEventListener('change', function () {
+  if (this.checked) {
+    status.textContent = "Auto sync enabled";
+    body.classList.add('sync-active');
+    startAutoSync();
+  } else {
+    status.textContent = "Auto sync disabled";
+    body.classList.remove('sync-active');
+    stopAutoSync();
+  }
+});
 
-  // Dodaj przycisk do ukrywania/pokazywania ręcznych przycisków
-  const toggleButtonsBtn = document.createElement('button');
-  toggleButtonsBtn.textContent = "Ukryj przyciski ręcznej synchronizacji";
-  toggleButtonsBtn.style.marginBottom = "12px";
-  toggleButtonsBtn.style.backgroundColor = "#6c757d";
-  toggleButtonsBtn.style.color = "white";
-  toggleButtonsBtn.style.border = "none";
-  toggleButtonsBtn.style.borderRadius = "var(--radius)";
-  toggleButtonsBtn.style.padding = "10px";
-  toggleButtonsBtn.style.cursor = "pointer";
+const toggleButtonsBtn = document.createElement('button');
+toggleButtonsBtn.textContent = "Hide manual sync buttons";
+toggleButtonsBtn.style.marginBottom = "12px";
+toggleButtonsBtn.style.backgroundColor = "#6c757d";
+toggleButtonsBtn.style.color = "white";
+toggleButtonsBtn.style.border = "none";
+toggleButtonsBtn.style.borderRadius = "var(--radius)";
+toggleButtonsBtn.style.padding = "10px";
+toggleButtonsBtn.style.cursor = "pointer";
 
-  const buttonGroup = document.querySelector('.button-group');
-  buttonGroup.parentNode.insertBefore(toggleButtonsBtn, buttonGroup);
+const buttonGroup = document.querySelector('.button-group');
+buttonGroup.parentNode.insertBefore(toggleButtonsBtn, buttonGroup);
 
-  let buttonsVisible = true;
+let buttonsVisible = true;
 
-  toggleButtonsBtn.addEventListener('click', () => {
-    buttonsVisible = !buttonsVisible;
-    buttonGroup.style.display = buttonsVisible ? 'grid' : 'none';
-    toggleButtonsBtn.textContent = buttonsVisible
-      ? "Ukryj przyciski ręcznej synchronizacji"
-      : "Pokaż przyciski ręcznej synchronizacji";
-  });
+toggleButtonsBtn.addEventListener('click', () => {
+  buttonsVisible = !buttonsVisible;
+  buttonGroup.style.display = buttonsVisible ? 'grid' : 'none';
+  toggleButtonsBtn.textContent = buttonsVisible
+    ? "Hide manual sync buttons"
+    : "Show manual sync buttons";
+});

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Tab Syncer Lite</title>
@@ -367,7 +367,7 @@
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-18c4.42 0 8 3.58 8 8s-3.58 8-8 8-8-3.58-8-8 3.58-8 8-8zm5 9h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
         </svg>
-        Automatyczna synchronizacja
+        Auto sync
       </span>
       <label class="switch">
         <input type="checkbox" id="autoSyncToggle">
@@ -380,35 +380,35 @@
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/>
         </svg>
-        Zapisz obecne karty
+        Save current tabs
       </button>
       <button id="downloadTabsButton">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
         </svg>
-        Pobierz karty
+        Download tabs
       </button>
       <button id="syncTabsButton">
         <svg class="icon" viewBox="0 0 24 24">
           <path d="M12 4V1l-4 4 4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
         </svg>
-        Synchronizuj karty
+        Sync tabs
       </button>
     </div>
 
-    <div id="status">Gotowy do działania</div>
-    <p id="memoryUsage">Używana pamięć: 1.2 MB</p>
+    <div id="status">Ready</div>
+    <p id="memoryUsage">Memory used: 1.2 MB</p>
 
     <div id="savedTabsSection">
       <h2>
-        Zapisane karty
+        Saved tabs
         <span class="badge">3</span>
       </h2>
       <ul id="savedTabsList">
         <li>https://developer.mozilla.org/en-US/docs/Web/API/Storage</li>
         <li>https://github.com/username/tab-syncer</li>
         <li>https://www.google.com/search?q=chrome+extensions+api</li>
-        <li class="no-tabs-message">Ładowanie zakończone</li>
+        <li class="no-tabs-message">Loading finished</li>
       </ul>
     </div>
   </main>
