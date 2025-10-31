@@ -1,5 +1,4 @@
-// Standalone background.js for Firefox/Chrome Manifest V3 background.scripts
-// No import/export! All helpers inlined.
+// I know this violates the don't repeat yourself principle, but don't want to learn more than i need to fix it.
 
 let autoSyncInterval = null;
 let hasAutoSynced = false;
@@ -90,23 +89,31 @@ function startAutoSync() {
   if (autoSyncInterval) return;
   debugLog('Starting autoSync interval');
   hasAutoSynced = false;
-  autoSyncInterval = setInterval(async () => {
+  // Initial sync after 5 seconds
+  setTimeout(async () => {
     try {
-      debugLog('AutoSync triggered');
+      debugLog('AutoSync initial sync triggered');
       if (!hasAutoSynced) {
         const savedTabs = await getSavedTabs();
         await syncTabs(savedTabs);
         debugLog('AutoSync: performed initial sync');
         hasAutoSynced = true;
-      } else {
-        // Save currently open tabs to storage
-        const tabs = await browserAPI.tabs.query({});
-        const openTabs = tabs.filter(tab => isValidTabUrl(tab.url)).map(tab => ({ url: tab.url }));
-        const timestamp = Date.now();
-        const payload = openTabs.map(tab => ({ url: tab.url, action: 'created', timestamp }));
-        await browserAPI.storage.sync.set({ ['syncedTabs']: payload, ['lastSync']: timestamp });
-        debugLog('AutoSync: saved open tabs to storage');
       }
+    } catch (e) {
+      debugLog('AutoSync error (initial):', e);
+    }
+  }, 5000);
+  // Then every 30 seconds, save open tabs
+  autoSyncInterval = setInterval(async () => {
+    try {
+      debugLog('AutoSync triggered');
+      // Save currently open tabs to storage
+      const tabs = await browserAPI.tabs.query({});
+      const openTabs = tabs.filter(tab => isValidTabUrl(tab.url)).map(tab => ({ url: tab.url }));
+      const timestamp = Date.now();
+      const payload = openTabs.map(tab => ({ url: tab.url, action: 'created', timestamp }));
+      await browserAPI.storage.sync.set({ ['syncedTabs']: payload, ['lastSync']: timestamp });
+      debugLog('AutoSync: saved open tabs to storage');
     } catch (e) {
       debugLog('AutoSync error:', e);
     }
@@ -119,6 +126,23 @@ function stopAutoSync() {
     clearInterval(autoSyncInterval);
     autoSyncInterval = null;
   }
+}
+
+// Save open tabs to storage on browser shutdown (if possible)
+if (runtime && runtime.onSuspend) {
+  runtime.onSuspend.addListener(async () => {
+    debugLog('Browser is suspending, saving open tabs');
+    try {
+      const tabs = await browserAPI.tabs.query({});
+      const openTabs = tabs.filter(tab => isValidTabUrl(tab.url)).map(tab => ({ url: tab.url }));
+      const timestamp = Date.now();
+      const payload = openTabs.map(tab => ({ url: tab.url, action: 'created', timestamp }));
+      await browserAPI.storage.sync.set({ ['syncedTabs']: payload, ['lastSync']: timestamp });
+      debugLog('Saved open tabs to storage on suspend');
+    } catch (e) {
+      debugLog('Error saving tabs on suspend:', e);
+    }
+  });
 }
 
 storage.local.get(['autoSyncEnabled']).then((result) => {
