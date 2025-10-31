@@ -2,6 +2,7 @@
 // No import/export! All helpers inlined.
 
 let autoSyncInterval = null;
+let hasAutoSynced = false;
 
 const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
 const runtime = browserAPI.runtime;
@@ -88,12 +89,24 @@ runtime.onMessage.addListener((message, sender, sendResponse) => {
 function startAutoSync() {
   if (autoSyncInterval) return;
   debugLog('Starting autoSync interval');
+  hasAutoSynced = false;
   autoSyncInterval = setInterval(async () => {
     try {
       debugLog('AutoSync triggered');
-      const savedTabs = await getSavedTabs();
-      await syncTabs(savedTabs);
-      debugLog('AutoSync complete');
+      if (!hasAutoSynced) {
+        const savedTabs = await getSavedTabs();
+        await syncTabs(savedTabs);
+        debugLog('AutoSync: performed initial sync');
+        hasAutoSynced = true;
+      } else {
+        // Save currently open tabs to storage
+        const tabs = await browserAPI.tabs.query({});
+        const openTabs = tabs.filter(tab => isValidTabUrl(tab.url)).map(tab => ({ url: tab.url }));
+        const timestamp = Date.now();
+        const payload = openTabs.map(tab => ({ url: tab.url, action: 'created', timestamp }));
+        await browserAPI.storage.sync.set({ ['syncedTabs']: payload, ['lastSync']: timestamp });
+        debugLog('AutoSync: saved open tabs to storage');
+      }
     } catch (e) {
       debugLog('AutoSync error:', e);
     }
