@@ -69,45 +69,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-let autoSyncInterval = null;
-
-function startAutoSync() {
-  if (autoSyncInterval) return;
-  autoSyncInterval = setInterval(async () => {
-    try {
-      updateStatus('Auto syncing tabs...');
-      const savedTabs = await getSavedTabs();
-      renderTabList(document.getElementById('savedTabsList'), savedTabs || []);
-      await syncTabs(savedTabs);
-      updateStatus('Auto sync complete.', 'green');
-    } catch (e) {
-      updateStatus('Auto sync error.', 'red');
-      console.error(e);
-    }
-  }, 30000); // 30 seconds
-}
-
-function stopAutoSync() {
-  if (autoSyncInterval) {
-    clearInterval(autoSyncInterval);
-    autoSyncInterval = null;
-  }
-}
+// Use browser.* API for Firefox compatibility
+const runtime = typeof browser !== 'undefined' ? browser.runtime : chrome.runtime;
+const storage = typeof browser !== 'undefined' ? browser.storage : chrome.storage;
 
 const autoSyncToggle = document.getElementById('autoSyncToggle');
 const status = document.getElementById('status');
 const body = document.body;
 
-autoSyncToggle.addEventListener('change', function () {
-  if (this.checked) {
+// Restore autoSync state from storage
+storage.local.get(['autoSyncEnabled']).then((result) => {
+  if (result.autoSyncEnabled) {
+    autoSyncToggle.checked = true;
     status.textContent = "Auto sync enabled";
     body.classList.add('sync-active');
-    startAutoSync();
   } else {
+    autoSyncToggle.checked = false;
     status.textContent = "Auto sync disabled";
     body.classList.remove('sync-active');
-    stopAutoSync();
   }
+});
+
+autoSyncToggle.addEventListener('change', function () {
+  const enabled = this.checked;
+  status.textContent = enabled ? "Auto sync enabled" : "Auto sync disabled";
+  body.classList.toggle('sync-active', enabled);
+  storage.local.set({ autoSyncEnabled: enabled });
+  runtime.sendMessage({ type: 'SET_AUTO_SYNC', enabled });
 });
 
 const toggleButtonsBtn = document.createElement('button');
