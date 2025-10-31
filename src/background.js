@@ -1,24 +1,77 @@
-// background.js
-import { getSavedTabs } from './storage.js';
-import { syncTabs } from './tabs.js';
+// Standalone background.js for Firefox/Chrome Manifest V3 background.scripts
+// No import/export! All helpers inlined.
 
 let autoSyncInterval = null;
 
-// Use browser.* API for Firefox compatibility
-const runtime = typeof browser !== 'undefined' ? browser.runtime : chrome.runtime;
-const storage = typeof browser !== 'undefined' ? browser.storage : chrome.storage;
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+const runtime = browserAPI.runtime;
+const storage = browserAPI.storage;
+const tabsAPI = browserAPI.tabs;
 
 // Debug utility
 function debugLog(...args) {
-  // Toggle this flag to enable/disable debug output
   const DEBUG = false;
   if (DEBUG) {
-    // Use console.log, but you could also send to a file or notification
     console.log('[TabSyncer][background]', ...args);
   }
 }
 
-// Listen for changes to autoSync state from popup
+function isValidTabUrl(url) {
+  return url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('file://'));
+}
+
+async function getSavedTabs() {
+  try {
+    const data = await storage.sync.get(['syncedTabs']);
+    return data['syncedTabs'] || [];
+  } catch (error) {
+    debugLog('Error getting saved tabs:', error);
+    return [];
+  }
+}
+
+async function syncTabs(savedTabs) {
+  if (!Array.isArray(savedTabs)) {
+    debugLog('Invalid savedTabs parameter:', savedTabs);
+    return { status: 'Invalid saved tabs data', type: 'error' };
+  }
+  if (savedTabs.length === 0) {
+    return { status: 'No saved tabs found', type: 'warning' };
+  }
+  const savedUrls = savedTabs.map(tab => tab.url).filter(isValidTabUrl);
+  const currentTabs = await tabsAPI.query({});
+  const currentUrls = currentTabs.map(tab => tab.url).filter(isValidTabUrl);
+  const tabsToClose = currentTabs.filter(tab => isValidTabUrl(tab.url) && !savedUrls.includes(tab.url));
+  const closeErrors = [];
+  for (const tab of tabsToClose) {
+    try {
+      await tabsAPI.remove(tab.id);
+    } catch (e) {
+      closeErrors.push(`Failed to close tab: ${tab.url}`);
+      debugLog(`Failed to close tab: ${tab.url}`, e);
+    }
+  }
+  const tabsToOpen = savedTabs.filter(tab => isValidTabUrl(tab.url) && !currentUrls.includes(tab.url));
+  const openErrors = [];
+  for (const tab of tabsToOpen) {
+    try {
+      await tabsAPI.create({ url: tab.url });
+    } catch (e) {
+      openErrors.push(`Failed to open ${tab.url}`);
+      debugLog(`Failed to open ${tab.url}:`, e);
+    }
+  }
+  return {
+    status: 'Sync complete',
+    type: 'success',
+    stats: {
+      closed: tabsToClose.length - closeErrors.length,
+      opened: tabsToOpen.length - openErrors.length,
+      errors: [...closeErrors, ...openErrors]
+    }
+  };
+}
+
 runtime.onMessage.addListener((message, sender, sendResponse) => {
   debugLog('Received message:', message);
   if (message.type === 'SET_AUTO_SYNC') {
@@ -55,7 +108,6 @@ function stopAutoSync() {
   }
 }
 
-// On extension startup, check persisted state and start autoSync if needed
 storage.local.get(['autoSyncEnabled']).then((result) => {
   debugLog('Startup: autoSyncEnabled =', result.autoSyncEnabled);
   if (result.autoSyncEnabled) {
